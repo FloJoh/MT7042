@@ -1,7 +1,7 @@
 ---
 title: "project2"
 author: "Florian John"
-date: "2023-02-11"
+date: "2023-02-17"
 output: pdf_document
 ---
 
@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Building a CNN
+## A) Building a CNN
 
 In this segment we will build a CNN using Tensorflow in python.
 We start by importing relevant modules.
@@ -57,6 +57,7 @@ for i in range(25):
 
 plt.show()
 ```
+
 Now we begin with creating our model. 
 
 ```{python}
@@ -74,11 +75,7 @@ model.add(layers.Dense(64, activation='relu'))
 model.add(layers.Dense(10))
 ```
 
-A crude illustration of our model's appearance is displayed in the following image.
-
-![representation of cnn model]("Cnn1.png")
-
-We observe from the above figure that the output in the ´filter´ argument in `layers.Conv2D` determines the output-channel dimensions. In our model we increase the dimensions of the channel as our model progresses in order to store more data. As the resolution of each layer lowers we are able to increase the channel size with less impact on performance.
+Now we train our model and record performance at early stopping points.
 
 ```{python,results='hide',message=FALSE,fig.show='hide'}
 model.compile(optimizer='adam',
@@ -101,13 +98,26 @@ plt.show()
 test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
 ```
 
+The training data accuracy and the test data accuracy are displayed in the figure above.
+
 ```{python}
 print(test_acc)
 ```
 
-Now we train a model based of the same arcitecture except instead of using Relu as our activation function we instead opt to using the tanh activation function.
 
-```{python}
+## B) Visualizing the model
+
+A crude illustration of our model's appearance is displayed in the following image.
+
+![representation of cnn model]("Cnn1.png")
+
+We observe from the above figure that the output in the ´filter´ argument in `layers.Conv2D` determines the output-channel dimensions. In our model we increase the dimensions of the channel as our model progresses in order to store more data. As the resolution of each layer lowers we are able to increase the channel size with less impact on performance.
+
+## C) Using a tanh activation function
+
+Now we train a model based of the same architecture except instead of using Relu as our activation function we instead opt to using the tanh activation function.
+
+```{python,echo = false}
 # set up model layers
 model_tanh = models.Sequential()
 model_tanh.add(layers.Conv2D(32, (3, 3), activation='tanh', input_shape=(32, 32, 3)))
@@ -134,7 +144,7 @@ history = model_tanh.fit(train_images, train_labels, epochs=20,
                     validation_data=(test_images, test_labels))
 ```
 
-Now we plot the history 
+We plot the history 
 
 ```{python}
 plt.clf()
@@ -148,13 +158,15 @@ plt.show()
 test_loss, test_acc = model_tanh.evaluate(test_images,  test_labels, verbose=2)
 ```
 
+## D) Discussing improved performance with tanh
+
 We observe that the model accuracy in the model early stopping curve outperforms the previous model. We conclude that the reason for this is the change of activation function from Relu to tanh. In contrast to the Relu function the tanh does not have any points where the derivative is zero which results in less risk of neurons becoming inactive and unable to continue training.
 
-
+## E) Implementing batch normalization 
 
 Now through batch normalization we will attempt to improve our model that uses relu activation function. From our early stopping curve we observe signs of overfitting since while our training data accuracy improves our test data accuracy remains at the same level. If we introduce batch normalization we introduce noise which acts as regularization which may benefit our models test accuracy.
 
-Batch normalization should be done right before implementation of an activation function in a model.
+Batch normalization should be implemented after the convolution and right before implementation of an activation function in a model.
 
 ```{python}
 # set up model layers
@@ -196,4 +208,4 @@ plt.show()
 test_loss, test_acc = model_bn.evaluate(test_images,  test_labels, verbose=2)
 ```
 
-From the figure above we notice the test accuracy is higher in the model with batch normalization.
+From the figure above we notice the test accuracy is higher in the model with batch normalization Which may be explained by the implementation of regularization. We also note that by normalizing we allow faster training which can also be seen in the plot.
