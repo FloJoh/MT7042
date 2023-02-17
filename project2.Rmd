@@ -1,0 +1,154 @@
+---
+title: "project2"
+author: "Florian John"
+date: "2023-02-11"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Building a CNN
+
+In this segment we will build a CNN using Tensorflow in python.
+We start by importing relevant modules.
+
+```{python}
+import tensorflow as tf
+
+from tensorflow.keras import datasets, layers, models
+import matplotlib.pyplot as plt
+```
+
+We now download a data-set containing images (with 32 x 32 resolution and RGB values) and labels for different categories associated with each image.
+
+```{python}
+# This is in order to avoid an error message when collecting data from
+# CIFAR10
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+```
+
+
+```{python}
+(train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
+
+# Normalize pixel values to be between 0 and 1
+train_images, test_images = train_images / 255.0, test_images / 255.0
+```
+
+Now we plot a sample from the data-set and display some images with their labels to see if the data is correct.
+
+```{python}
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
+
+plt.figure(figsize=(10,10))
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+    plt.imshow(train_images[i])
+    # The CIFAR labels happen to be arrays, 
+    # which is why you need the extra index
+    plt.ylabel(class_names[train_labels[i][0]])
+
+plt.show()
+```
+Now we begin with creating our model. 
+
+```{python}
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+```
+
+```{python}
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10))
+```
+
+A crude illustration of our model's appearance is displayed in the following image.
+
+![representation of cnn model]("Cnn1.png")
+
+We observe from the above figure that the output in the ´filter´ argument in `layers.Conv2D` determines the output-channel dimensions. In our model we increase the dimensions of the channel as our model progresses in order to store more data. As the resolution of each layer lowers we are able to increase the channel size with less impact on performance.
+
+```{python,results='hide',message=FALSE,fig.show='hide'}
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+history = model.fit(train_images, train_labels, epochs=10, 
+                    validation_data=(test_images, test_labels))
+```
+
+```{python}
+plt.clf()
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.show()
+test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+```
+
+```{python}
+print(test_acc)
+```
+
+Now we train a model based of the same arcitecture except instead of using Relu as our activation function we instead opt to using the tanh activation function.
+
+```{python}
+# set up model layers
+model_tanh = models.Sequential()
+model_tanh.add(layers.Conv2D(32, (3, 3), activation='tanh', input_shape=(32, 32, 3)))
+model_tanh.add(layers.MaxPooling2D((2, 2)))
+model_tanh.add(layers.Conv2D(64, (3, 3), activation='tanh'))
+model_tanh.add(layers.MaxPooling2D((2, 2)))
+model_tanh.add(layers.Conv2D(64, (3, 3), activation='tanh'))
+
+model_tanh.add(layers.Flatten())
+model_tanh.add(layers.Dense(64, activation='tanh'))
+model_tanh.add(layers.Dense(10))
+
+
+```
+
+Now we train the model
+
+```{python}
+model_tanh.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+history = model_tanh.fit(train_images, train_labels, epochs=15, 
+                    validation_data=(test_images, test_labels))
+```
+
+Now we plot the history 
+
+```{python}
+plt.clf()
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.show()
+test_loss, test_acc = model_tanh.evaluate(test_images,  test_labels, verbose=2)
+```
+
+We observe that the model accuracy in the model early stopping curve outperforms the previous model. We conclude that the reason for this is the change of activation function from Relu to tanh. In contrast to the Relu function the tanh does not have any points where the derivative is zero which results in less risk of neurons becoming inactive and unable to continue training.
+
+
+
