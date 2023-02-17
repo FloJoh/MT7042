@@ -117,7 +117,7 @@ We observe from the above figure that the output in the ´filter´ argument in `
 
 Now we train a model based of the same architecture except instead of using Relu as our activation function we instead opt to using the tanh activation function.
 
-```{python,echo = false}
+```{python,echo = FALSE}
 # set up model layers
 model_tanh = models.Sequential()
 model_tanh.add(layers.Conv2D(32, (3, 3), activation='tanh', input_shape=(32, 32, 3)))
@@ -133,9 +133,7 @@ model_tanh.add(layers.Dense(10))
 
 ```
 
-Now we train the model
-
-```{python}
+```{python,echo = FALSE,results = 'hide'}
 model_tanh.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
@@ -144,9 +142,8 @@ history = model_tanh.fit(train_images, train_labels, epochs=20,
                     validation_data=(test_images, test_labels))
 ```
 
-We plot the history 
 
-```{python}
+```{python,echo = FALSE}
 plt.clf()
 plt.plot(history.history['accuracy'], label='accuracy')
 plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
@@ -187,7 +184,7 @@ model_bn.add(layers.Dense(64, activation='relu'))
 model_bn.add(layers.Dense(10))
 ```
 
-```{python}
+```{python,results = 'hide'}
 model_bn.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
