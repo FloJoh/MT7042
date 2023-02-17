@@ -85,7 +85,7 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-history = model.fit(train_images, train_labels, epochs=10, 
+history = model.fit(train_images, train_labels, epochs=20, 
                     validation_data=(test_images, test_labels))
 ```
 
@@ -94,7 +94,7 @@ plt.clf()
 plt.plot(history.history['accuracy'], label='accuracy')
 plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
 plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
+# plt.ylabel('Accuracy')
 plt.ylim([0.5, 1])
 plt.legend(loc='lower right')
 plt.show()
@@ -130,7 +130,7 @@ model_tanh.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-history = model_tanh.fit(train_images, train_labels, epochs=15, 
+history = model_tanh.fit(train_images, train_labels, epochs=20, 
                     validation_data=(test_images, test_labels))
 ```
 
@@ -152,3 +152,48 @@ We observe that the model accuracy in the model early stopping curve outperforms
 
 
 
+Now through batch normalization we will attempt to improve our model that uses relu activation function. From our early stopping curve we observe signs of overfitting since while our training data accuracy improves our test data accuracy remains at the same level. If we introduce batch normalization we introduce noise which acts as regularization which may benefit our models test accuracy.
+
+Batch normalization should be done right before implementation of an activation function in a model.
+
+```{python}
+# set up model layers
+model_bn = models.Sequential()
+model_bn.add(layers.Conv2D(32, (3, 3), input_shape=(32, 32, 3)))
+model_bn.add(layers.BatchNormalization())
+model_bn.add(layers.Activation('relu'))
+model_bn.add(layers.MaxPooling2D((2, 2)))
+model_bn.add(layers.Conv2D(64, (3, 3)))
+model_bn.add(layers.BatchNormalization())
+model_bn.add(layers.Activation('relu'))
+model_bn.add(layers.MaxPooling2D((2, 2)))
+model_bn.add(layers.Conv2D(64, (3, 3)))
+model_bn.add(layers.BatchNormalization())
+model_bn.add(layers.Activation('relu'))
+model_bn.add(layers.Flatten())
+model_bn.add(layers.Dense(64, activation='relu'))
+model_bn.add(layers.Dense(10))
+```
+
+```{python}
+model_bn.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+history = model_bn.fit(train_images, train_labels, epochs=20, 
+                    validation_data=(test_images, test_labels))
+```
+
+```{python}
+plt.clf()
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.show()
+test_loss, test_acc = model_bn.evaluate(test_images,  test_labels, verbose=2)
+```
+
+From the figure above we notice the test accuracy is higher in the model with batch normalization.
